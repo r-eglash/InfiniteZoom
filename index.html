@@ -55,25 +55,29 @@ obj.addEventListener("load",()=>{
 
     function animate(){
 
-        t += SPEED;
+    // Advance animation
+    t += SPEED;
 
-        if (t >= 1) {
-            t = 0;
-        }
+    // Restart when we reach the recursive square
+    if (t >= 1){
+        t = 0;
+    }
 
-        let s = t;
+    // Zoom at a constant perceived speed
+    const zoom = Math.pow(FULL.w / TARGET.w, t);
 
-        let x=FULL.x+(TARGET.x-FULL.x)*s;
-        let y=FULL.y+(TARGET.y-FULL.y)*s;
-        let w=FULL.w+(TARGET.w-FULL.w)*s;
-        let h=FULL.h+(TARGET.h-FULL.h)*s;
+    const w = FULL.w / zoom;
+    const h = FULL.h / zoom;
 
-        svg.setAttribute(
-            "viewBox",
-            `${x} ${y} ${w} ${h}`
-        );
+    const x = TARGET.x - (TARGET.x - FULL.x) / zoom;
+    const y = TARGET.y - (TARGET.y - FULL.y) / zoom;
 
-        requestAnimationFrame(animate);
+    svg.setAttribute(
+        "viewBox",
+        `${x} ${y} ${w} ${h}`
+    );
+
+    requestAnimationFrame(animate);
 
     }
 
