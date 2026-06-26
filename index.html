@@ -36,50 +36,96 @@ const FULL = {
 };
 
 // Your recursive square
-const TARGET = {
+const FULL={
+    x:0,
+    y:0,
+    w:8192,
+    h:8192
+};
+
+const TARGET={
     x:4098.11-40.9998/2,
     y:4099.9701-40.9602/2,
     w:40.9998,
     h:40.9602
 };
 
-const SPEED = 0.0001;      // smaller = slower
+const SPEED=.0018;
 
-const obj=document.getElementById("svg");
+const A=document.getElementById("svgA");
+const B=document.getElementById("svgB");
 
-obj.addEventListener("load",()=>{
+Promise.all([
+    new Promise(r=>A.onload=r),
+    new Promise(r=>B.onload=r)
+]).then(()=>{
 
-    const svg=obj.contentDocument.querySelector("svg");
+    const svgA=A.contentDocument.querySelector("svg");
+    const svgB=B.contentDocument.querySelector("svg");
+
+    let front=svgA;
+    let back=svgB;
+
+    let frontObj=A;
+    let backObj=B;
 
     let t=0;
 
+    function setView(svg,progress){
+
+        const zoom=Math.pow(FULL.w/TARGET.w,progress);
+
+        const w=FULL.w/zoom;
+        const h=FULL.h/zoom;
+
+        const x=TARGET.x-(TARGET.x-FULL.x)/zoom;
+        const y=TARGET.y-(TARGET.y-FULL.y)/zoom;
+
+        svg.setAttribute(
+            "viewBox",
+            `${x} ${y} ${w} ${h}`
+        );
+
+    }
+
     function animate(){
 
-    // Advance animation
-    t += SPEED;
+        t+=SPEED;
 
-    // Restart when we reach the recursive square
-    if (t >= 1){
-        t = 0;
+        setView(front,t);
+
+        if(t>.985){
+
+            backObj.style.opacity=1;
+            frontObj.style.opacity=0;
+
+        }
+
+        if(t>=1){
+
+            t=0;
+
+            setView(front,0);
+
+            let tmp=front;
+            front=back;
+            back=tmp;
+
+            tmp=frontObj;
+            frontObj=backObj;
+            backObj=tmp;
+
+            backObj.style.opacity=0;
+            frontObj.style.opacity=1;
+
+        }
+
+        requestAnimationFrame(animate);
+
     }
 
-    // Zoom at a constant perceived speed
-    const zoom = Math.pow(FULL.w / TARGET.w, t);
-
-    const w = FULL.w / zoom;
-    const h = FULL.h / zoom;
-
-    const x = TARGET.x - (TARGET.x - FULL.x) / zoom;
-    const y = TARGET.y - (TARGET.y - FULL.y) / zoom;
-
-    svg.setAttribute(
-        "viewBox",
-        `${x} ${y} ${w} ${h}`
-    );
-
-    requestAnimationFrame(animate);
-
-    }
+    setView(front,0);
+    setView(back,0);
 
     animate();
 
