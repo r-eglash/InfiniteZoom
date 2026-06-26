@@ -3,30 +3,32 @@
 <head>
 
 <meta charset="UTF-8">
+<title>Infinite Zoom</title>
 
 <style>
 
 html,body{
     margin:0;
-    overflow:hidden;
-    background:white;
     width:100%;
     height:100%;
+    overflow:hidden;
+    background:white;
 }
 
-#viewer{
+#container{
     width:100vw;
     height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
     overflow:hidden;
+    cursor:grab;
 }
 
-img{
-    transform-origin:center center;
-    user-select:none;
-    pointer-events:none;
+#container:active{
+    cursor:grabbing;
+}
+
+svg{
+    width:100%;
+    height:100%;
 }
 
 </style>
@@ -35,49 +37,111 @@ img{
 
 <body>
 
-<div id="viewer">
+<div id="container">
 
-<img id="art" src="drawing.svg">
+<object id="svgObject"
+        data="drawing.svg"
+        type="image/svg+xml"
+        width="100%"
+        height="100%">
+</object>
 
 </div>
 
 <script>
 
-const art = document.getElementById("art");
+const object=document.getElementById("svgObject");
 
-let scale = 1;
+object.addEventListener("load",()=>{
 
-function draw(){
+const svg=object.contentDocument.querySelector("svg");
 
-    art.style.transform =
-        `scale(${scale})`;
+let scale=1;
+
+let x=4096;
+let y=4096;
+
+let dragging=false;
+
+let lastX=0;
+let lastY=0;
+
+function update(){
+
+    const size=8192/scale;
+
+    svg.setAttribute(
+        "viewBox",
+        `${x-size/2} ${y-size/2} ${size} ${size}`
+    );
 
 }
 
-draw();
+update();
 
-window.addEventListener("wheel",e=>{
+window.addEventListener("wheel",(e)=>{
 
     e.preventDefault();
 
-    if(e.deltaY<0)
-        scale*=1.03;
-    else
-        scale/=1.03;
+    const zoom=e.deltaY<0?1.08:1/1.08;
 
-    // Infinite recursion
-    if(scale>=2)
+    scale*=zoom;
+
+    // fake infinite zoom
+
+    if(scale>2){
+
         scale/=2;
 
-    if(scale<1)
+    }
+
+    if(scale<1){
+
         scale*=2;
 
-    draw();
+    }
+
+    update();
 
 },{passive:false});
+
+const container=document.getElementById("container");
+
+container.addEventListener("mousedown",e=>{
+
+    dragging=true;
+
+    lastX=e.clientX;
+    lastY=e.clientY;
+
+});
+
+window.addEventListener("mouseup",()=>{
+
+    dragging=false;
+
+});
+
+window.addEventListener("mousemove",e=>{
+
+    if(!dragging) return;
+
+    const dx=e.clientX-lastX;
+    const dy=e.clientY-lastY;
+
+    lastX=e.clientX;
+    lastY=e.clientY;
+
+    x-=dx*(8192/scale)/window.innerWidth;
+    y-=dy*(8192/scale)/window.innerHeight;
+
+    update();
+
+});
+
+});
 
 </script>
 
 </body>
-
 </html>
