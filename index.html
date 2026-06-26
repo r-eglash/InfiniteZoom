@@ -55,14 +55,13 @@ obj.addEventListener("load",()=>{
 
     function animate(){
 
-        t+=SPEED;
+        t += SPEED;
 
-        if(t>=1){
-            t=0;
+        if (t >= 1) {
+            t = 0;
         }
 
-        // exponential easing
-        let s=(Math.exp(6*t)-1)/(Math.exp(6)-1);
+        let s = t;
 
         let x=FULL.x+(TARGET.x-FULL.x)*s;
         let y=FULL.y+(TARGET.y-FULL.y)*s;
