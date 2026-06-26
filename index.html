@@ -28,97 +28,55 @@ object{
 
 <script>
 
-// Your recursive square
-const FULL={
+const FULL = {
     x:0,
     y:0,
     w:8192,
     h:8192
 };
 
-const TARGET={
+// Your recursive square
+const TARGET = {
     x:4098.11-40.9998/2,
     y:4099.9701-40.9602/2,
     w:40.9998,
     h:40.9602
 };
 
-const SPEED=.0018;
+const SPEED = 0.01;      // smaller = slower
 
-const A=document.getElementById("svgA");
-const B=document.getElementById("svgB");
+const obj=document.getElementById("svg");
 
-Promise.all([
-    new Promise(r=>A.onload=r),
-    new Promise(r=>B.onload=r)
-]).then(()=>{
+obj.addEventListener("load",()=>{
 
-    const svgA=A.contentDocument.querySelector("svg");
-    const svgB=B.contentDocument.querySelector("svg");
-
-    let front=svgA;
-    let back=svgB;
-
-    let frontObj=A;
-    let backObj=B;
+    const svg=obj.contentDocument.querySelector("svg");
 
     let t=0;
 
-    function setView(svg,progress){
+    function animate(){
 
-        const zoom=Math.pow(FULL.w/TARGET.w,progress);
+        t+=SPEED;
 
-        const w=FULL.w/zoom;
-        const h=FULL.h/zoom;
+        if(t>=1){
+            t=0;
+        }
 
-        const x=TARGET.x-(TARGET.x-FULL.x)/zoom;
-        const y=TARGET.y-(TARGET.y-FULL.y)/zoom;
+        // exponential easing
+        let s=(Math.exp(6*t)-1)/(Math.exp(6)-1);
+
+        let x=FULL.x+(TARGET.x-FULL.x)*s;
+        let y=FULL.y+(TARGET.y-FULL.y)*s;
+        let w=FULL.w+(TARGET.w-FULL.w)*s;
+        let h=FULL.h+(TARGET.h-FULL.h)*s;
 
         svg.setAttribute(
             "viewBox",
             `${x} ${y} ${w} ${h}`
         );
 
-    }
-
-    function animate(){
-
-        t+=SPEED;
-
-        setView(front,t);
-
-        if(t>.985){
-
-            backObj.style.opacity=1;
-            frontObj.style.opacity=0;
-
-        }
-
-        if(t>=1){
-
-            t=0;
-
-            setView(front,0);
-
-            let tmp=front;
-            front=back;
-            back=tmp;
-
-            tmp=frontObj;
-            frontObj=backObj;
-            backObj=tmp;
-
-            backObj.style.opacity=0;
-            frontObj.style.opacity=1;
-
-        }
-
         requestAnimationFrame(animate);
 
     }
-
-    setView(front,0);
-    setView(back,0);
 
     animate();
 
